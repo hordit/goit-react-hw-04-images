@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { BASE_URL, API_KEY } from './constants';
 
- export const getImages = async (searchName, page) => {
+export const getImages = async (searchName, page) => {
   const response = await axios.get(`${BASE_URL}/?`, {
     params: {
       key: API_KEY,
@@ -11,6 +11,5 @@ import { BASE_URL, API_KEY } from './constants';
       image_type: 'photo',
     },
   });
-  return response.data.hits;
+  return response.data;
 };
-

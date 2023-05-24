@@ -3,7 +3,7 @@ import { Loyout } from './App.styled';
 import { GlobalStyle } from '../GlobalStyles';
 import { Toaster } from 'react-hot-toast';
 import { toast } from 'react-hot-toast';
-import { getImages } from 'services/api'; 
+import { getImages } from 'services/api';
 import { HTTP_ERROR_MSG } from 'services/constants';
 import { Searchbar } from 'components/Searchbar/Searchbar';
 import { Loader } from 'components/Loader/Loader';
@@ -15,23 +15,34 @@ export const App = () => {
   const [images, setImages] = useState([]);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [showBegin, setShowBegin] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (searchName === '') return; 
-    
+    const controller = new AbortController();
+
+    if (!searchName) {
+      setShowBegin(false);
+      return;
+    }
+
     async function fetchImages() {
+      setLoading(true);
+      setError('');
+      console.log('Fetching images...'); // Add console.log here
+
       try {
-        setLoading(true);
-        setError('');
+        const { totalHits, hits } = await getImages(searchName, page, {
+          signal: controller.signal,
+        });
 
-        const newImages = await getImages(searchName, page);
-
-        if (!newImages.length) {
+        if (!hits.length) {
+          setShowBegin(false);
           return toast.error('No images found. Please enter another keyword');
         }
 
-        setImages(prevImages => [...prevImages, ...newImages]);
+        setImages(prevImages => [...prevImages, ...hits]);
+        setShowBegin(page < Math.ceil(totalHits / 12));
       } catch (error) {
         setError(HTTP_ERROR_MSG);
       } finally {
@@ -39,6 +50,10 @@ export const App = () => {
       }
     }
     fetchImages();
+
+    return () => {
+      controller.abort();
+    };
   }, [searchName, page]);
 
   const handleFormSubmit = searchNewName => {
@@ -57,11 +72,7 @@ export const App = () => {
       {error && <div>{error}</div>}
       {images.length > 0 && <ImageGallery images={images} />}
       {loading && <Loader />}
-      {images.length >= 12 && !loading && (
-        <>
-          <Button onClick={handleLoadMore} />
-        </>
-      )}
+      {showBegin && <Button onClick={handleLoadMore} />}
       <Toaster position="top-center" reverseOrder={true} />
       <GlobalStyle />
     </Loyout>
