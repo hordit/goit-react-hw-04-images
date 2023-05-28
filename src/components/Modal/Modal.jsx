@@ -7,11 +7,12 @@ const modalRoot = document.querySelector('#modal-root');
 
 export const Modal = ({ children, onClose }) => {
   useEffect(() => {
-    const closeModal = ({ code, target, currentTarget }) => {
-      if (code === 'Escape' || target === currentTarget) {
+    const closeModal = ({ code }) => {
+      if (code === 'Escape') {
         onClose();
       }
     };
+    
     document.addEventListener('keydown', closeModal);
 
     return () => {
@@ -19,8 +20,14 @@ export const Modal = ({ children, onClose }) => {
     };
   }, [onClose]);
 
+  const handleCloseModal = ({ target, currentTarget }) => {
+    if (target === currentTarget) {
+      onClose();
+    }
+  };
+
   return createPortal(
-    <Backdrop onClick={onClose}>
+    <Backdrop onClick={handleCloseModal}>
       <DivModal>{children}</DivModal>
     </Backdrop>,
     modalRoot

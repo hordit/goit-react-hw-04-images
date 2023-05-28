@@ -21,15 +21,10 @@ export const App = () => {
   useEffect(() => {
     const controller = new AbortController();
 
-    if (!searchName) {
-      setShowBegin(false);
-      return;
-    }
-
+    if (!searchName) return;
+    
     async function fetchImages() {
       setLoading(true);
-      setError('');
-      console.log('Fetching images...'); // Add console.log here
 
       try {
         const { totalHits, hits } = await getImages(searchName, page, {
@@ -60,6 +55,7 @@ export const App = () => {
     setsearchName(searchNewName);
     setPage(1);
     setImages([]);
+    setError('');
   };
 
   const handleLoadMore = () => {
